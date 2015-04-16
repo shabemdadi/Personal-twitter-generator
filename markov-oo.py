@@ -53,14 +53,14 @@ class TweetableMarkovGenerator(SimpleMarkovGenerator):
 
     limit = 140
 
-    # def make_text(self, dictionary, limit):                           # other solution
-    #     super(TweetableMarkovGenerator, self).make_text(dictionary, 140)
+    def make_text(self, dictionary, limit):                           # other solution
+        super(TweetableMarkovGenerator, self).make_text(dictionary, self.limit)
 
 
 if __name__ == "__main__":
     script, filename, ngram = sys.argv                          # unpack sys.argv arguments
     tweet = TweetableMarkovGenerator()
     chain_dict = tweet.make_chains(filename, ngram)             # Get a Markov chain
-    random_text = tweet.make_text(chain_dict, tweet.limit)      # Produce random text
+    random_text = tweet.make_text(chain_dict)                   # Produce random text
 
     print random_text
