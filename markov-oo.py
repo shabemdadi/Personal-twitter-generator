@@ -32,23 +32,23 @@ class SimpleMarkovGenerator(object):
        
         punctuation = "?.!"                                         # create punctuation string    
 
-        while dictionary.get(starting_key) != None:             # removed: and next_word[-1] not in punctuation: # Continue until the key is not found in the dictionary and until the last word ends in punctuation
+        while dictionary.get(starting_key) != None:             # Continue until the key is not found in the dictionary
             value_list = dictionary[starting_key]               # assign value of key (list)
             rand_index = random.randrange(0, len(value_list))   # choose random int w/in length of list
             next_word = value_list[rand_index]                  # find item at that random index
 
             new_text_string = new_text_string + " " + next_word     # add next_word to list of created text
 
-            if limit:
-                if len(new_text_string) > int(limit):
+            if limit:                                           # checking to see if limit parameter was given    
+                while len(new_text_string) > int(limit):        # if length of the current string is greater than the given limit, iterate through each character from the end to find punctuation
                     for i in range(len(new_text_string)-1,-1,-1):
                         if new_text_string[i] in punctuation:
-                           new_text_string = new_text_string[0:(i+1)]
-                    if len(new_text_string) > int(limit):
-                        new_text_string = new_text_string[:limit]
-                    break
+                           new_text_string = new_text_string[0:(i+1)] # cut off string at punctuation
+                if len(new_text_string) > int(limit):           # This will only be true if no puncutation was found! check again if the length is greater than the limit
+                    new_text_string = new_text_string[:limit]   # cut off string according to given limit
 
             starting_key = tuple(list(starting_key[1:]) + [next_word])   # create new tuple from second word of previous tuple + item at that index
+
 
         return new_text_string                                  # return new text
 
@@ -67,6 +67,7 @@ class RemovePunctuationMixin(object):
                     new_word = new_word + char
             formatted_list.append(new_word)
         return formatted_list
+
 
 class LowercaseWordsMixin(object):
     """Reads file and makes all words in list lowercase."""
@@ -94,6 +95,7 @@ class LowercaseMarkovGenerator(SimpleMarkovGenerator, LowercaseWordsMixin):
         dictionary = super(LowercaseMarkovGenerator,self).make_chains(ngram, self.make_lower(filename)) # to not remove punctuation, use read_file(filename). To remove punctuation, use remove_punct(filename)
         return super(LowercaseMarkovGenerator, self).make_text(dictionary)
 
+
 class PunctuationlessMarkovGenerator(SimpleMarkovGenerator, RemovePunctuationMixin):
     """Markov generator that uses RemovePunctuationMixin."""
 
@@ -101,9 +103,12 @@ class PunctuationlessMarkovGenerator(SimpleMarkovGenerator, RemovePunctuationMix
         dictionary = super(PunctuationlessMarkovGenerator,self).make_chains(ngram, self.remove_punct(filename)) # to not remove punctuation, use read_file(filename). To remove punctuation, use remove_punct(filename)
         return super(PunctuationlessMarkovGenerator, self).make_text(dictionary)
 
+
+
 if __name__ == "__main__":
     script, filename, ngram = sys.argv                          # unpack sys.argv arguments
-    generator = PunctuationlessMarkovGenerator()
-    random_text = generator.make_text()                   # Produce random text
+    generator = SimpleMarkovGenerator()        # change this line based on which generator you want to use
+    dictionary = generator.make_chains(ngram, generator.read_file(filename))
+    random_text = generator.make_text(dictionary, limit=1000)                   # Produce random text
 
     print random_text
