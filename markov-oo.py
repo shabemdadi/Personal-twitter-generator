@@ -26,29 +26,25 @@ class SimpleMarkovGenerator(object):
     def make_text(self, dictionary, limit=None):
         """Takes dictionary of markov chains; returns random text."""
 
-        capital_keys_list = [key for key in dictionary.keys() if key[0][0].isupper()]   # create list of only keys that start with an uppercase letter
-        starting_key = random.choice(capital_keys_list)             # choose key (tuple) to start at
-        new_text_string = " ".join(starting_key)           # add items in that tuple to string of created text
+        keys_list = [key for key in dictionary.keys()]   # create list of keys
+        starting_key = random.choice(keys_list)          # choose key (tuple) to start at
+        new_text_string = " ".join(starting_key)         # add items in that tuple to string of created text
        
-        punctuation = "?.!"                                         # create punctuation string    
+        punctuation = "?.!"                              # create punctuation string    
 
-        while dictionary.get(starting_key) != None:             # Continue until the key is not found in the dictionary
-            value_list = dictionary[starting_key]               # assign value of key (list)
-            rand_index = random.randrange(0, len(value_list))   # choose random int w/in length of list
-            next_word = value_list[rand_index]                  # find item at that random index
-
-            new_text_string = new_text_string + " " + next_word     # add next_word to list of created text
-
-            if limit:                                           # checking to see if limit parameter was given    
+        while dictionary.get(starting_key) != None:                      # Continue until the key is not found in the dictionary
+            value_list = dictionary[starting_key]                        # assign value of key (list)
+            next_word = random.choice(value_list)                        # choose random word within list
+            new_text_string = new_text_string + " " + next_word          # add next_word to string of created text
+            starting_key = tuple(list(starting_key[1:]) + [next_word])   # create new tuple from second word of previous tuple + the next word
+            
+            if limit:                                           # check to see if limit parameter was given           
                 while len(new_text_string) > int(limit):        # if length of the current string is greater than the given limit, iterate through each character from the end to find punctuation
                     for i in range(len(new_text_string)-1,-1,-1):
                         if new_text_string[i] in punctuation:
-                           new_text_string = new_text_string[0:(i+1)] # cut off string at punctuation
+                           new_text_string = new_text_string[0:(i+1)]                           # cut off string at punctuation
                 if len(new_text_string) > int(limit):           # This will only be true if no puncutation was found! check again if the length is greater than the limit
                     new_text_string = new_text_string[:limit]   # cut off string according to given limit
-
-            starting_key = tuple(list(starting_key[1:]) + [next_word])   # create new tuple from second word of previous tuple + item at that index
-
 
         return new_text_string                                  # return new text
 
@@ -84,7 +80,7 @@ class TweetableMarkovGenerator(LowercaseWordsMixin, RemovePunctuationMixin, Simp
     limit = 140
 
     def make_text(self):                           
-        dictionary = super(TweetableMarkovGenerator,self).make_chains(ngram, self.read_file(filename)) # to not remove punctuation, use read_file(filename). To remove punctuation, use remove_punct(filename)
+        dictionary = super(TweetableMarkovGenerator,self).make_chains(ngram, self.make_lower(filename)) # to not remove punctuation, use read_file(filename). To remove punctuation, use remove_punct(filename)
         return super(TweetableMarkovGenerator, self).make_text(dictionary, self.limit)
 
 
@@ -107,8 +103,7 @@ class PunctuationlessMarkovGenerator(SimpleMarkovGenerator, RemovePunctuationMix
 
 if __name__ == "__main__":
     script, filename, ngram = sys.argv                          # unpack sys.argv arguments
-    generator = SimpleMarkovGenerator()        # change this line based on which generator you want to use
-    dictionary = generator.make_chains(ngram, generator.read_file(filename))
-    random_text = generator.make_text(dictionary, limit=1000)                   # Produce random text
+    generator = TweetableMarkovGenerator()        # change this line based on which generator you want to use
+    random_text = generator.make_text()                 # Produce random text
 
     print random_text
