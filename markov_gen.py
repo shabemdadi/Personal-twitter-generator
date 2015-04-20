@@ -101,6 +101,7 @@ class PunctuationlessMarkovGenerator(SimpleMarkovGenerator, RemovePunctuationMix
 
 
 
+# def generate_tweet():             # uncomment and indent below function with twitter generator
 if __name__ == "__main__":
     script, filename, ngram = sys.argv                          # unpack sys.argv arguments
     generator = TweetableMarkovGenerator()        # change this line based on which generator you want to use
